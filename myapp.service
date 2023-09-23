@@ -1,0 +1,29 @@
+[Unit]
+Description=myapp service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+OpenFile=/run/no_user_access/myapp.service.mainpid:mainpidfile:truncate
+
+User=test
+
+Restart=no
+TimeoutStopSec=70
+
+ExecStartPre=+touch /run/no_user_access/myapp.service.mainpid
+ExecStartPre=+truncate --size 0 /run/no_user_access/myapp.service.mainpid
+ExecStartPre=+touch /run/myapp.service.result
+ExecStartPre=+truncate --size 0 /run/myapp.service.result
+
+ExecStart=/var/tmp/myservice /run/myapp.service.result
+ExecStartPost=+/var/tmp/notifymainpid /run/no_user_access/myapp.service.mainpid /run/myapp.service.result
+
+ExecStopPost=/bin/rm /run/no_user_access/myapp.service.mainpid
+ExecStopPost=/bin/rm /run/myapp.service.result
+
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=default.target
